@@ -48,7 +48,7 @@ jobs:
           # URIs can be CURIEs (prefix:localname) or full URIs. Order must match inputttl.
           # NOTE: mineralSKOS is processed separately (process_mineralSKOS.yml) due to its large size.
           # SeaDataNet files use http://vocab.nerc.ac.uk/scheme/SDNDEV/current as the ConceptScheme.
-          inputvocaburi: http://vocab.terralid.org
+          inputvocaburi: http://vocab.terralid.org#conceptScheme_a0559f69
 
 
       - name: Deploy docs

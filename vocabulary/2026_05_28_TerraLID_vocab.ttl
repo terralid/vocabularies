@@ -11,7 +11,7 @@
 @prefix dcam: <http://purl.org/dc/dcam/> .
 @prefix base: <http://www.w3.org/2004/02/skos/core> .
 
-<http://vocab.terralid.org> a owl:Ontology .
+<http://vocab.terralid.org#> a owl:Ontology .
 
 :conceptScheme_a0559f69 a skos:ConceptScheme;
   dct:creator "Katrin J. Westner"@en, "Thomas Rose"@en, "TerraLID Editors"@en, "TerraLID Core Team"@en,

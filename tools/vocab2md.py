@@ -224,6 +224,7 @@ def _labelToLink(label):
     if isinstance(label, list):
         label = label[0]
     label = label.split("/")[-1]
+    label = label.split("#")[-1]
     label = label.lower().strip()
     label = label.replace(",", "")
     label = label.replace(" ","-")
@@ -271,15 +272,17 @@ def describeTerm(g, t, depth=0, level=1):
             res.append(f"* `{label}`")
         res.append("")
     _target = t.split("/")[-1]
+    _target = _target.split("#")[-1]
     res.append("[]{" + f"#{_labelToLink(_target)}" + "}")
     res.append("")
-    res.append(f"Concept: [`{t.split('/')[-1]}`]({t})")
+    res.append(f"Concept: [`{t.split('/')[-1].split("#")[-1]}`]({t})")
     broader = getObjects(g, t, skosT('broader'))
     if len(broader) > 0:
         res.append("")
         res.append("Child of:")
         for b in broader:
             bt = b.split('/')[-1]
+            bt = bt.split("#")[-1]
             res.append(f" [`{bt}`](#{bt})")
     res.append("")
     # The textual description will be present in rdfs:comment or

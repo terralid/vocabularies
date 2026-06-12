@@ -195,6 +195,7 @@ def _labelToLink(label):
     if isinstance(label, list):
         label = label[0]
     label = label.split("/")[-1]
+    label = label.split("#")[-1]
     label = label.lower().strip()
     label = label.replace(",", "")
     label = label.replace(" ", "-")
@@ -202,17 +203,26 @@ def _labelToLink(label):
 
 
 def termTree(g, v, r, depth=0):
+    # 1. Fetch the human-readable preferred label
     label = getObjects(g, r, skosT("prefLabel"))
-#    print(label)
-    llabel = _labelToLink(r)
-    if not label:
-        label = []
-        label.insert(0, llabel)
-    res = [f"{'    ' * depth}- [{label[0]}](#{llabel.lower()})"]
+    
+    if label:
+        # 2. Convert the actual text (e.g., "Site Type") into a Quarto-compatible slug ("site-type")
+        label_text = str(label[0]).strip().lower()
+        slug_target = label_text.replace(" ", "-").replace("/", "-").replace("_", "-")
+    else:
+        # Fallback to the raw ID if no prefLabel exists
+        slug_target = _labelToLink(r).lower()
+        label = [_labelToLink(r)]
+
+    # 3. Build the Markdown list item with the slug target
+    res = [f"{'    ' * depth}- [{label[0]}](#{slug_target})"]
+    
+    # Recursive loop down to child nodes
     for term in getNarrower(g, v, r):
         res += termTree(g, v, term, depth=depth + 1)
+        
     return res
-
 
 def termJsonTree(g, v, r, depth=0):
     label = getObjects(g, r, skosT("prefLabel"))[0]
@@ -232,13 +242,25 @@ def termJsonTree(g, v, r, depth=0):
 def describeTerm(g, t, depth=0, level=1):
     res = []
     labels = getObjects(g, t, skosT('prefLabel'))
-# anchor to link to this term
-    _target = t.split("/")[-1]
-    res.append("[]{" + f"#{_labelToLink(_target).lower()}" + "}")
+
+    # --- UPDATED: Anchor matching Quarto's text slug format (#site-type) ---
+    if len(labels) > 0:
+        label_text = str(labels[0]).strip().lower()
+        slug_target = label_text.replace(" ", "-").replace("/", "-").replace("_", "-")
+        res.append("[]{" + f"#{slug_target}" + "}")
+    else:
+        _target = t.split("/")[-1]
+        _target = _target.split("#")[-1]
+        res.append("[]{" + f"#{_labelToLink(_target).lower()}" + "}")
+        
     res.append("")
+    
+    # Setup logger setup
+    _target = t.split("/")[-1].split("#")[-1]
     L = getLogger()
     L.debug(f"describe term {_target}")
-# heading for this term
+
+    # Heading for this term
     hl = f"{'#' * (depth + 1)} "
     if len(labels) < 1:
         res.append(f"{hl} `{t}`")
@@ -246,36 +268,39 @@ def describeTerm(g, t, depth=0, level=1):
         res.append(f"{hl} {labels[0].strip()}")
         for label in labels[1:]:
             res.append(f"* `{label}`")
-        #res.append("")
 
-    broader = getObjects(g, t, skosT('broader'))
-    if len(broader) > 0:
-        #res.append("")
-        res.append(f"- **Child of**:")
-        for b in broader:
-            blabels = getObjects(g, b, skosT('prefLabel'))
-            bt = b.split('/')[-1]
-            res.append(f" [`{blabels[0].strip()}`](#{bt.lower()})")
-    #res.append("")
-    # The textual description will be present in rdfs:comment or
-    # skos:definition. 
+    # Textual descriptions (rdfs:comment or skos:definition)
     comments = []
     for comment in getObjects(g, t, rdfsT('comment')):
         comments.append(f"- {comment}")
     for comment in getObjects(g, t, skosT('definition')):
-        comments.append(f"- {comment}")
+        comments.append(f"- **Definition**: {comment}")
     for comment in comments:
-        lines = textwrap.wrap(
-            comment,
-            width=70
-        )
+        lines = textwrap.wrap(comment, width=70)
         res += lines
+
+    # Broader relationships ("Child of")
+    broader = getObjects(g, t, skosT('broader'))
+    if len(broader) > 0:
+        res.append(f"- **Child of**:")
+        for b in broader:
+            blabels = getObjects(g, b, skosT('prefLabel'))
+            bt = b.split('/')[-1].split("#")[-1]
+            if len(blabels) > 0:
+                parent_text = str(blabels[0]).strip().lower()
+                parent_slug = parent_text.replace(" ", "-").replace("/", "-").replace("_", "-")
+                res.append(f"  - [`{blabels[0].strip()}`](#{parent_slug})")
+            else:
+                res.append(f"  - [`{bt}`](#{bt.lower()})")
+    
+    # See Also section
     seealsos = getObjects(g, t, rdfsT('seeAlso'))
     if len(seealsos) > 0:
-        #res.append("")
         res.append(f"- **See Also**:")
         for seealso in seealsos:
-            res.append(f"* [{seealso.n3(g.namespace_manager)}]({seealso})")
+            res.append(f"  - [{seealso.n3(g.namespace_manager)}]({seealso})")
+
+    # Alternate labels section
     altlabels = []
     for altlabel in getObjects(g, t, skosT('altLabel')):
         altlabels.append(altlabel)
@@ -283,12 +308,10 @@ def describeTerm(g, t, depth=0, level=1):
         delimiter = ""
         if len(altlabels) > 1:
             delimiter = ", "
-        #res.append("")
         res.append(f"- **Alternate labels:**")
         for altlabel in altlabels:
-            res.append(f"{altlabel}{delimiter}")
-        #res.append("")
-
+            res.append(f"  - {altlabel}{delimiter}")
+    # Sources section
     sources = []
     for source in getObjects(g, t, dctT('source')):
         sources.append(source)
@@ -296,40 +319,71 @@ def describeTerm(g, t, depth=0, level=1):
         delimiter = ""
         if len(sources) > 1:
             delimiter = ", "
-        #res.append("")
         res.append(f"- **Source:**")
         for source in sources:
-            res.append(f"{source}{delimiter}")
-        #res.append("")
+            res.append(f"  - {source}{delimiter}")
 
+    # Calls describeMineral for hidden lists like Matches & Other Properties
+    describeMineral(g, t, res)
+
+    # --- FIXED: References block written cleanly as a clean main-bullet section ---
+    references = getObjects(g, t, dctT('references'))
+    if len(references) > 0:
+        res.append(f"- **References**:")
+        for ref in references:
+            if len(ref) > 0:
+                res.append(f"  - [{ref}]({ref})")
+
+    # Global base concept identifier
     res.append(f"- **Concept URI:** {t}")
-    #res.append("")
-
-    describeMineral(g,t, res)
 
     return res
 
 def describeMineral(g, t, res):
-    minprops = ['crystalsystem','imachemistry','imanumber','mindaturl','statusnotes']
+    noteprops = ['scopeNote','note']
+    matchprops = ['closeMatch', 'exactMatch', 'broadMatch', 'narrowMatch', 'relatedMatch']
     #res = []
     thevalues = []
     delimiter = ": "
-    res.append(f"- **Other Properties:**")
-    for term in minprops:
-        thevalues = getObjects(g, t, minT(term))
+
+    # 1. Create a temporary list to hold property strings
+    temp_properties = []
+    
+    for term in noteprops:
+        thevalues = getObjects(g, t, skosT(term))
         for thevalue in thevalues:
             if len(thevalue) > 0:
-                res.append(f"  - **{term}**{delimiter}")
-                # wrapping splits <sub> and <sup> markup in chemical formulas...
-                # if len(thevalue) > 70:
-                #     lines = textwrap.wrap(thevalue,70)
-                #     res += lines
-                # else:
+                # Add the bold key heading (e.g., "  - **scopeNote**:")
+                temp_properties.append(f"  - **{term}**{delimiter}")
+                
+                # Check if it's a URL to format it cleanly as a clickable link
                 if "url" in term:
-                    res.append(f"[{thevalue}]({thevalue})")
+                    temp_properties.append(f"[{thevalue}]({thevalue})")
                 else:
-                    res.append(f"{thevalue}")
+                    temp_properties.append(f"{thevalue}")
+                    
+    # 2. Only add to the main document if we found at least one property
+    if len(temp_properties) > 0:
+        res.append(f"- **Other Properties:**")
+        res += temp_properties
 #                res.append(" ")
+    # 2. Create a temporary list to hold matches if we find any
+    temp_matches = []
+    
+    for term in matchprops:
+        matchvalues = getObjects(g, t, skosT(term))
+        for matchvalue in matchvalues:
+            if len(matchvalue) > 0:
+                # Store the sub-bullet strings in our temporary list
+                temp_matches.append(f"  - {matchvalue} ({term})")
+                
+    # 3. Check if we found at least one match
+    if len(temp_matches) > 0:
+        # Only now do we add the title to the main document array!
+        res.append(f"- **Matches:**")
+        # Add all the collected sub-bullets directly under the title
+        res += temp_matches
+
     return
 
 def describeNarrowerTerms(g, v, r, depth=0, level=[]):
@@ -354,7 +408,8 @@ def describeVocabulary(G, V):
     res.append("  html:")
     res.append("    ascii: true")
     res.append("    toc: true")
-    res.append("    toc-depth: 4")
+    res.append("    toc-depth: 5")
+    res.append("    smooth-scroll: true")
     res.append("    number-sections: true")
     res.append("    anchor-sections: false")
     res.append("    number-depth: 8")
@@ -385,7 +440,7 @@ def describeVocabulary(G, V):
 #        print("expected a skos:modified date for most recent update to vocabulary")
         res.append("no modified date")
         res.append("")
-    res.append("subtitle: ")
+    res.append("subtitle: The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile, which describes archaeometric data and the materials they are derived from with particular focus on lead isotope data. The vocabularies were compiled by the TerraLID Editors and the TerraLID Core Team and implemented in SKOS by Thomas Rose and Katrin J. Westner. This work has received funding from the German Research Foundation (DFG) through the grants KL 1259/17-1 and WI 5923/2-1 (project number: 524790825).")
     for comment in getObjects(G, V, skosT("definition")) + getObjects(G, V, rdfsT("comment")):
         res.append(f"  {comment.strip()}")
     res.append("")
