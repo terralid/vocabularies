@@ -201,6 +201,15 @@ def _labelToLink(label):
     label = label.replace(" ", "-")
     return label
 
+def get_sorted_narrower(g, v, r):
+    terms = getNarrower(g, v, r)
+
+    def label(term):
+        labels = getObjects(g, term, skosT("prefLabel"))
+        return str(labels[0]).lower() if labels else ""
+
+    return sorted(terms, key=label)
+
 
 def termTree(g, v, r, depth=0):
     # 1. Fetch the human-readable preferred label
@@ -219,7 +228,7 @@ def termTree(g, v, r, depth=0):
     res = [f"{'    ' * depth}- [{label[0]}](#{slug_target})"]
     
     # Recursive loop down to child nodes
-    for term in getNarrower(g, v, r):
+    for term in get_sorted_narrower(g, v, r):
         res += termTree(g, v, term, depth=depth + 1)
         
     return res
@@ -233,7 +242,7 @@ def termJsonTree(g, v, r, depth=0):
     }
     # res = [f"{'    '*depth}- [{label[0]}](#{llabel})"]
     children = []
-    for term in getNarrower(g, v, r):
+    for term in get_sorted_narrower(g, v, r):
         children.append(termJsonTree(g, v, term, depth=depth + 1))
     obj["children"] = children
     return obj
@@ -281,6 +290,14 @@ def describeTerm(g, t, depth=0, level=1):
 
     # Broader relationships ("Child of")
     broader = getObjects(g, t, skosT('broader'))
+    broader = sorted(
+        broader,
+        key=lambda b: (
+            str(getObjects(g, b, skosT('prefLabel'))[0]).lower()
+            if getObjects(g, b, skosT('prefLabel'))
+            else str(b).lower()
+        )
+    )
     if len(broader) > 0:
         res.append(f"- **Child of**:")
         for b in broader:
@@ -335,7 +352,7 @@ def describeTerm(g, t, depth=0, level=1):
                 res.append(f"  - [{ref}]({ref})")
 
     # Global base concept identifier
-    res.append(f"- **Concept URI:** {t}")
+    res.append(f'- **Concept URI:** <a href="{t}">{t}</a>')
 
     return res
 
@@ -375,7 +392,7 @@ def describeMineral(g, t, res):
         for matchvalue in matchvalues:
             if len(matchvalue) > 0:
                 # Store the sub-bullet strings in our temporary list
-                temp_matches.append(f"  - {matchvalue} ({term})")
+                temp_matches.append(f'  - <a href="{matchvalue}">{matchvalue}</a> ({term})')
                 
     # 3. Check if we found at least one match
     if len(temp_matches) > 0:
@@ -388,7 +405,7 @@ def describeMineral(g, t, res):
 
 def describeNarrowerTerms(g, v, r, depth=0, level=[]):
     res = []
-    terms = getNarrower(g, v, r)
+    terms = get_sorted_narrower(g, v, r)
     for term in terms:
         res += describeTerm(g, term, depth=depth)
         res.append("")
@@ -430,7 +447,7 @@ def describeVocabulary(G, V):
     res.append("[]{" + f"#{lscheme}" + "}")
     res.append("")
     # bold heading 1
-    res.append(f"# **Concept scheme:** {scheme}")
+    res.append(f" <h1>{scheme}</h1>")
     res.append("")
     try:
         modified = getObjects(G, V, dctT("modified"))[0]
@@ -440,7 +457,7 @@ def describeVocabulary(G, V):
 #        print("expected a skos:modified date for most recent update to vocabulary")
         res.append("no modified date")
         res.append("")
-    res.append("subtitle: The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile, which describes archaeometric data and the materials they are derived from with particular focus on lead isotope data. The vocabularies were compiled by the TerraLID Editors and the TerraLID Core Team and implemented in SKOS by Thomas Rose and Katrin J. Westner. This work has received funding from the German Research Foundation (DFG) through the grants KL 1259/17-1 and WI 5923/2-1 (project number: 524790825).")
+    res.append("The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile, which describes archaeometric data and the materials they are derived from with particular focus on lead isotope data. The vocabularies were compiled by the TerraLID Editors and the TerraLID Core Team and implemented in SKOS by Thomas Rose and Katrin J. Westner. This work has received funding from the German Research Foundation (DFG) through the grants KL 1259/17-1 and WI 5923/2-1 (project number: 524790825).")
     for comment in getObjects(G, V, skosT("definition")) + getObjects(G, V, rdfsT("comment")):
         res.append(f"  {comment.strip()}")
     res.append("")
@@ -454,7 +471,11 @@ def describeVocabulary(G, V):
     res.append("")
 
     depth = 1
-    roots = getVocabRoot(G, V)
+
+    roots = sorted(
+        getVocabRoot(G, V),
+        key=lambda t: str(getObjects(G, t, skosT("prefLabel"))[0]).lower()
+    )
 #
     for root in roots:
         res += termTree(G, V, root, depth=0)

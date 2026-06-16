@@ -1,29 +1,17 @@
-# Vocabularies For GeoSamples.org
+# Vocabularies For TerraLID
 
 Vocabularies to support the SESAR sample registration system. The authoritative source files are SKOS RDF vocabularies serialized using Turtle syntax, located in the `vocabulary/` directory.
 
-HTML view of vocabularies is available at https://geosamples.github.io/vocabularies.
+HTML view of vocabularies is available at https://vocab.terralid.org/.
 
 ## Vocabularies
 
-### SESAR core vocabularies (`vocabulary/`)
+### TerraLId vocabularies (`vocabulary/`)
 
 | File | Description | ConceptScheme URI |
 |------|-------------|-------------------|
-| `SESAR_materials_extension.ttl` | Lithology/material types extending the iSamples material vocabulary | `sesrs:materialvocabulary` |
-| `SESAR_sampled_feature_extension.ttl` | Geologic, physiographic, and environmental features extending iSamples Sampled Feature Type | `sessf:sfvocabulary` |
-| `SamplingMethods.ttl` | Material sample collection methods (154 concepts) | `secm:samplingmethods` |
-| `SESAR_material_object_type_extension.ttl` | Material sample object types extending iSamples | `sesot:objecttypevocabulary` |
-| `mineralSKOS.ttl` | Mineral species vocabulary (6,299 concepts) with links to Mindat, RRUFF, Wikidata | `gcmin:conceptScheme` |
+| `2026_03_12_TerraLID_vocab.ttl` | The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile | `conceptScheme_a0559f69` |
 
-### Sampling method vocabularies (`vocabulary/samplingMethods/`)
-
-| File | Description | ConceptScheme URI |
-|------|-------------|-------------------|
-| `samplePreparation_GSQ.ttl` | Queensland Geological Survey sample preparation methods | `http://linked.data.gov.au/def/sample-preparation-methods` |
-| `sampling-method_GAv1-0.ttl` | Geoscience Australia sampling methods | `http://pid.geoscience.gov.au/def/voc/ga/samplingmethod` |
-| `SamplePreparationSeaDataNet.ttl` | SeaDataNet sample preparation device categories | `http://vocab.nerc.ac.uk/scheme/SDNDEV/current` (top concept: ICAT02) |
-| `SampleCollectionSeaDataNet.ttl` | SeaDataNet sample collection device categories | `http://vocab.nerc.ac.uk/scheme/SDNDEV/current` (top concept: ICAT01) |
 
 ## Processing pipeline
 
@@ -53,8 +41,8 @@ The vocabularies in this repository use several different SKOS patterns. The pro
 
 ## Adding a new vocabulary
 
-1. Add the `.ttl` file to `vocabulary/` (or `vocabulary/samplingMethods/`)
-2. Add its filename (without `.ttl` extension) and ConceptScheme URI to the pipe-delimited `inputttl` and `inputvocaburi` lists in `process_vocab.yml`. Subdirectory paths are supported (e.g., `samplingMethods/myVocab`). Order must match between the two lists.
+1. Add the `.ttl` file to `vocabulary/` (or `vocabulary/`)
+2. Add its filename (without `.ttl` extension) and ConceptScheme URI to the pipe-delimited `inputttl` and `inputvocaburi` lists in `process_vocab.yml`. Order must match between the two lists.
 3. Add a section to `docs/readme.md` with links to the HTML page and RDF source file
 4. Trigger the "Process vocabularies" workflow from the Actions tab
 
