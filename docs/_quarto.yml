@@ -1,0 +1,35 @@
+project:
+  type: website
+
+website:
+  title: "TerraLID Vocabulary"
+
+  favicon: assets/favicon/favicon.ico
+
+  page-footer:
+    left: |
+      This work is licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
+      [Legal information](https://www.terralid.org/about.html)
+
+    right: |
+      [![](icons/instagram.svg){width=20px}](https://www.instagram.com/terra_lid/) [![](icons/mail.svg){width=20px}](mailto:terralid@bergbaumuseum.de)  [![](icons/globe.svg){width=20px}](https://www.terralid.org) 
+
+format:
+  html:
+    theme:
+      - sandstone
+      - custom.scss
+
+    css: styles.css
+
+    toc: true
+    toc-location: left
+    toc-depth: 5
+    smooth-scroll: true
+    number-sections: true
+    anchor-sections: false
+    number-depth: 8
+
+    link-external-newwindow: true
+
+    date: today

@@ -420,20 +420,14 @@ def describeVocabulary(G, V):
 
     # this is the header for Quarto in the markdown output
     res.append("---")
-    res.append("comment: | \n  WARNING: This file is generated. Any edits will be lost!")
-    res.append("format:")
-    res.append("  html:")
-    res.append("    ascii: true")
-    res.append("    toc: true")
-    res.append("    toc-depth: 5")
-    res.append("    smooth-scroll: true")
-    res.append("    number-sections: true")
-    res.append("    anchor-sections: false")
-    res.append("    number-depth: 8")
+    res.append('title: "TerraLID Vocabulary"')
+    res.append("comment: |")
+    res.append("  WARNING: This file is generated. Any edits will be lost!")
     res.append("execute:")
     res.append("  echo: false")
-#    res.append("categories: [\"vocabulary\"]")
     res.append("---")
+
+    
     # end of Quarto qmd header
 
     res.append("")
@@ -447,7 +441,7 @@ def describeVocabulary(G, V):
     res.append("[]{" + f"#{lscheme}" + "}")
     res.append("")
     # bold heading 1
-    res.append(f" <h1>{scheme}</h1>")
+    # res.append(f" <h1>{scheme}</h1>")
     res.append("")
     try:
         modified = getObjects(G, V, dctT("modified"))[0]
