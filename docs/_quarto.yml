@@ -1,5 +1,8 @@
 project:
   type: website
+  output-dir: _site
+  post-render: 
+    - cp _site/2026_06_12_TerraLID_vocab.html _site/index.html
 
 website:
   title: "TerraLID Vocabulary"

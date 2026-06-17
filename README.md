@@ -1,16 +1,14 @@
-# Vocabularies For TerraLID
+# TerraLID Vocabulary
 
 Vocabularies to support the SESAR sample registration system. The authoritative source files are SKOS RDF vocabularies serialized using Turtle syntax, located in the `vocabulary/` directory.
 
 HTML view of vocabularies is available at https://vocab.terralid.org/.
 
-## Vocabularies
-
 ### TerraLId vocabularies (`vocabulary/`)
 
 | File | Description | ConceptScheme URI |
 |------|-------------|-------------------|
-| `2026_03_12_TerraLID_vocab.ttl` | The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile | `conceptScheme_a0559f69` |
+| `2026_06_12_TerraLID_vocab.ttl` | The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile | `conceptScheme_a0559f69` |
 
 
 ## Processing pipeline
@@ -48,8 +46,23 @@ The vocabularies in this repository use several different SKOS patterns. The pro
 
 ## Implementation details
 
-- **Docker image**: `python:3.12-slim` with Quarto, rdflib, rdflib-sqlalchemy
+- **Docker image**: `python:3.12-slim-bookworm` with Quarto, rdflib, rdflib-sqlalchemy
 - **Entry point**: `.github/actions/github_action_main.py`
 - **Tools**: `tools/vocab.py` (CLI for DB loading), `tools/vocab2mdCacheV2.py` (markdown generation), `tools/navocab/` (SKOS/rdflib wrapper)
 - **Dependencies**: `setuptools<81` is pinned because `rdflib-sqlalchemy` 0.5.4 requires `pkg_resources`
 - **GitHub Pages**: Serves from the `/docs` directory on the `gh-pages` branch
+
+## Generate HTML Documentation
+
+### 1. Build the Docker image
+
+```bash
+docker build -t globalid-vocab .
+
+docker run --rm \
+  -v $(pwd)/docs:/app/docs \
+  -e INPUT_ACTION=docs \
+  -e INPUT_PATH=/app \
+  -e INPUT_INPUTTTL="2026_06_12_TerraLID_vocab" \
+  -e INPUT_INPUTVOCABURI="http://vocab.terralid.org#conceptScheme_a0559f69" \
+  globalid-vocab

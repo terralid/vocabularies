@@ -50,6 +50,14 @@ jobs:
           # SeaDataNet files use http://vocab.nerc.ac.uk/scheme/SDNDEV/current as the ConceptScheme.
           inputvocaburi: http://vocab.terralid.org#conceptScheme_a0559f69
 
+      - name: Fix Homepage URL
+        run: |
+          if [ -f "docs/_site/2026_06_12_TerraLID_vocab.html" ]; then
+            cp docs/_site/2026_06_12_TerraLID_vocab.html docs/_site/index.html
+            echo "Successfully copied dated HTML to index.html"
+          else
+            echo "Warning: Target HTML file not found in docs/_site/"
+          fi
 
       - name: Deploy docs
         uses: JamesIves/github-pages-deploy-action@v4
