@@ -1,6 +1,6 @@
 # TerraLID Vocabulary
 
-Vocabularies to support the SESAR sample registration system. The authoritative source files are SKOS RDF vocabularies serialized using Turtle syntax, located in the `vocabulary/` directory.
+The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile, which describes archaeometric data and the materials they are derived from with particular focus on lead isotope data. The authoritative source files are SKOS RDF vocabularies serialized using Turtle syntax, located in the `vocabulary/` directory.
 
 HTML view of vocabularies is available at https://vocab.terralid.org/.
 

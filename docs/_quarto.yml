@@ -35,4 +35,4 @@ format:
 
     link-external-newwindow: true
 
-    date: today
+    # date: today
