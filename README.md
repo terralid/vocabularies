@@ -32,8 +32,7 @@ The vocabularies in this repository use several different SKOS patterns. The pro
 
 | Workflow | Trigger | Description |
 |----------|---------|-------------|
-| **Process vocabularies** (`process_vocab.yml`) | Manual | Generates HTML for all vocabularies except mineralSKOS |
-| **Process mineralSKOS** (`process_mineralSKOS.yml`) | Manual | Generates HTML for mineralSKOS only (~20 min due to size) |
+| **Process vocabularies** (`process_vocab.yml`) | Manual | Generates HTML for all vocabularies |
 | **build** (`integration.yml`) | Push to main/develop | Docker build verification and smoke test |
 | **Test vocabularies** (`testdocs_process_vocab.yml`) | Manual | Tests pipeline with a small vocabulary subset |
 
@@ -52,12 +51,19 @@ The vocabularies in this repository use several different SKOS patterns. The pro
 - **Dependencies**: `setuptools<81` is pinned because `rdflib-sqlalchemy` 0.5.4 requires `pkg_resources`
 - **GitHub Pages**: Serves from the `/docs` directory on the `gh-pages` branch
 
+
+## Acknowledgements
+
+This project is a fork of and builds upon the workflows and code originally created by **https://www.geosamples.org/** in the **https://github.com/GeoSamples/vocabularies** project. 
+
+The original work is licensed under the Apache License 2.0. We are incredibly grateful to the original authors for their contributions to the community.
+
 ## Generate HTML Documentation
 
 ### 1. Build the Docker image
 
 ```bash
-docker build -t globalid-vocab .
+docker build -t terralid-vocab .
 
 docker run --rm \
   -v $(pwd)/docs:/app/docs \
@@ -65,4 +71,6 @@ docker run --rm \
   -e INPUT_PATH=/app \
   -e INPUT_INPUTTTL="2026_06_12_TerraLID_vocab" \
   -e INPUT_INPUTVOCABURI="http://vocab.terralid.org#conceptScheme_a0559f69" \
-  globalid-vocab
+  terralid-vocab
+
+

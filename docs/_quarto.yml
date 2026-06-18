@@ -5,9 +5,31 @@ project:
     - cp _site/2026_06_12_TerraLID_vocab.html _site/index.html
 
 website:
+  site-url: https://vocab.terralid.org/
+  repo-url: https://github.com/terralid/vocabularies
   title: "TerraLID Vocabulary"
 
   favicon: assets/favicon/favicon.ico
+
+  navbar:
+    title: "&nbsp;&nbsp;TerraLID Vocabulary"
+    logo: assets/TerraLID_logo_word_white.png
+    logo-alt: "TerraLID logo"
+    href: /
+    left:
+      - text: "                              "
+        # menu:
+        #   - href: https://vocab.terralid.org/
+        #     text: "V2"
+        #   - href: https://vocab.terralid.org/
+        #     text: "V1"
+      - text: "                              "  
+    
+    right:
+      - icon: github
+        href: https://github.com/terralid/vocabularies
+        aria-label: "GitHub"
+
 
   page-footer:
     left: |
