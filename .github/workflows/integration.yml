@@ -30,6 +30,6 @@ jobs:
           path: ./tests/docs
           # provide ttl file names without extensions; the base file name will be
           #    used for output files with the appropriate extension.
-          inputttl: SESAR_sampled_feature_extension
+          inputttl: 2026_06_12_TerraLID_vocab
           # these are the URIs for the ConceptScheme; there must be a conceptScheme defined in each vocabulary.
-          inputvocaburi: sessf:sfvocabulary
+          inputvocaburi: http://vocab.terralid.org#conceptScheme_a0559f69

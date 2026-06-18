@@ -49,7 +49,7 @@ The vocabularies in this repository use several different SKOS patterns. The pro
 - **Entry point**: `.github/actions/github_action_main.py`
 - **Tools**: `tools/vocab.py` (CLI for DB loading), `tools/vocab2mdCacheV2.py` (markdown generation), `tools/navocab/` (SKOS/rdflib wrapper)
 - **Dependencies**: `setuptools<81` is pinned because `rdflib-sqlalchemy` 0.5.4 requires `pkg_resources`
-- **GitHub Pages**: Serves from the `/docs` directory on the `gh-pages` branch
+- **GitHub Pages**: Serves from the `/_site` directory on the `main` branch
 
 
 ## Acknowledgements
