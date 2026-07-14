@@ -278,9 +278,9 @@ def describeTerm(g, t, depth=0, level=1):
         for label in labels[1:]:
             res.append(f"* `{label}`")
         res.append("")
-    _target = t.split("/")[-1]
-    _target = _target.split("#")[-1]
-    res.append("[]{" + f"#{_labelToLink(_target)}" + "}")
+    # _target = t.split("/")[-1]
+    # _target = _target.split("#")[-1]
+    # res.append("[]{" + f"#{_labelToLink(_target)}" + "}")
     res.append("")
     res.append(f"Concept: [`{t.split('/')[-1].split("#")[-1]}`]({t})")
     broader = getObjects(g, t, skosT('broader'))

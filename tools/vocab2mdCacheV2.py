@@ -253,14 +253,14 @@ def describeTerm(g, t, depth=0, level=1):
     labels = getObjects(g, t, skosT('prefLabel'))
 
     # --- UPDATED: Anchor matching Quarto's text slug format (#site-type) ---
-    if len(labels) > 0:
-        label_text = str(labels[0]).strip().lower()
-        slug_target = label_text.replace(" ", "-").replace("/", "-").replace("_", "-")
-        res.append("[]{" + f"#{slug_target}" + "}")
-    else:
-        _target = t.split("/")[-1]
-        _target = _target.split("#")[-1]
-        res.append("[]{" + f"#{_labelToLink(_target).lower()}" + "}")
+    # if len(labels) > 0:
+    #     label_text = str(labels[0]).strip().lower()
+    #     slug_target = label_text.replace(" ", "-").replace("/", "-").replace("_", "-")
+    #     res.append("[]{" + f"#{slug_target}" + "}")
+    # else:
+    #     _target = t.split("/")[-1]
+    #     _target = _target.split("#")[-1]
+    #     res.append("[]{" + f"#{_labelToLink(_target).lower()}" + "}")
         
     res.append("")
     
