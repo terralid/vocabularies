@@ -212,20 +212,12 @@ def get_sorted_narrower(g, v, r):
 
 
 def termTree(g, v, r, depth=0):
-    # 1. Fetch the human-readable preferred label
     label = getObjects(g, r, skosT("prefLabel"))
-    
-    if label:
-        # 2. Convert the actual text (e.g., "Site Type") into a Quarto-compatible slug ("site-type")
-        label_text = str(label[0]).strip().lower()
-        slug_target = label_text.replace(" ", "-").replace("/", "-").replace("_", "-")
-    else:
-        # Fallback to the raw ID if no prefLabel exists
-        slug_target = _labelToLink(r).lower()
-        label = [_labelToLink(r)]
+    target = r.split("/")[-1].split("#")[-1]
+    if not label:
+        label = [target]
 
-    # 3. Build the Markdown list item with the slug target
-    res = [f"{'    ' * depth}- [{label[0]}](#{slug_target})"]
+    res = [f"{'    ' * depth}- [{label[0]}](#{target})"]
     
     # Recursive loop down to child nodes
     for term in get_sorted_narrower(g, v, r):
@@ -261,11 +253,14 @@ def describeTerm(g, t, depth=0, level=1):
     #     _target = t.split("/")[-1]
     #     _target = _target.split("#")[-1]
     #     res.append("[]{" + f"#{_labelToLink(_target).lower()}" + "}")
-        
-    res.append("")
-    
-    # Setup logger setup
+
     _target = t.split("/")[-1].split("#")[-1]
+    # Anchor with the concept ID so that resolving the concept URI fragment (#c_xxxx) scrolls here
+    res.append("")
+    res.append("[]{" + f"#{_target}" + "}")
+    res.append("")
+
+    # Setup logger setup
     L = getLogger()
     L.debug(f"describe term {_target}")
 
@@ -304,11 +299,9 @@ def describeTerm(g, t, depth=0, level=1):
             blabels = getObjects(g, b, skosT('prefLabel'))
             bt = b.split('/')[-1].split("#")[-1]
             if len(blabels) > 0:
-                parent_text = str(blabels[0]).strip().lower()
-                parent_slug = parent_text.replace(" ", "-").replace("/", "-").replace("_", "-")
-                res.append(f"  - [`{blabels[0].strip()}`](#{parent_slug})")
+                res.append(f"  - [`{blabels[0].strip()}`](#{bt})")
             else:
-                res.append(f"  - [`{bt}`](#{bt.lower()})")
+                res.append(f"  - [`{bt}`](#{bt})")
     
     # See Also section
     seealsos = getObjects(g, t, rdfsT('seeAlso'))
