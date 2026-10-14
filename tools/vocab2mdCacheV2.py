@@ -255,21 +255,19 @@ def describeTerm(g, t, depth=0, level=1):
     #     res.append("[]{" + f"#{_labelToLink(_target).lower()}" + "}")
 
     _target = t.split("/")[-1].split("#")[-1]
-    # Anchor with the concept ID so that resolving the concept URI fragment (#c_xxxx) scrolls here
-    res.append("")
-    res.append("[]{" + f"#{_target}" + "}")
     res.append("")
 
     # Setup logger setup
     L = getLogger()
     L.debug(f"describe term {_target}")
 
-    # Heading for this term
+    # Concept ID as heading ID: Quarto then offsets section targets for the fixed navbar
     hl = f"{'#' * (depth + 1)} "
+    hid = "{#" + _target + "}"
     if len(labels) < 1:
-        res.append(f"{hl} `{t}`")
+        res.append(f"{hl} `{t}` {hid}")
     else:
-        res.append(f"{hl} {labels[0].strip()}")
+        res.append(f"{hl} {labels[0].strip()} {hid}")
         for label in labels[1:]:
             res.append(f"* `{label}`")
 
