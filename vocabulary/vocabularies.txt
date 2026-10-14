@@ -1,0 +1,3 @@
+# Vocabularies rendered to https://vocab.terralid.org
+# <ttl file name without .ttl>  <skos:ConceptScheme URI>
+2026_06_12_TerraLID_vocab http://vocab.terralid.org#conceptScheme_a0559f69

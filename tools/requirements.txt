@@ -1,5 +1,5 @@
-click
-rdflib
-rdflib-sqlalchemy
-requests
-setuptools<81
+click==8.5.0
+rdflib==7.6.0
+rdflib-sqlalchemy==0.5.4
+requests==2.34.2
+setuptools==80.10.2

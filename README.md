@@ -1,76 +1,82 @@
 # TerraLID Vocabulary
 
-The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile, which describes archaeometric data and the materials they are derived from with particular focus on lead isotope data. The authoritative source files are SKOS RDF vocabularies serialized using Turtle syntax, located in the `vocabulary/` directory.
+The TerraLID vocabularies ensure coherent data entries for the TerraLID metadata profile, which describes archaeometric data and the materials they are derived from, with a particular focus on lead isotope data. The vocabularies were compiled by the TerraLID Editors and the TerraLID Core Team and implemented in SKOS by Thomas Rose and Katrin J. Westner.
 
-HTML view of vocabularies is available at https://vocab.terralid.org/.
+The authoritative source is the SKOS vocabulary in Turtle syntax in [`vocabulary/`](vocabulary/). This repository turns it into a static, searchable HTML site published at **https://vocab.terralid.org**.
 
-### TerraLId vocabularies (`vocabulary/`)
+## Repository layout
 
-| File | Description | ConceptScheme URI |
-|------|-------------|-------------------|
-| `2026_06_12_TerraLID_vocab.ttl` | The TerraLID vocabularies include various vocabularies to ensure coherent data entries for the TerraLID metadata profile | `conceptScheme_a0559f69` |
+| Path | Content |
+|------|---------|
+| `vocabulary/*.ttl` | SKOS vocabularies (source of truth) |
+| `vocabulary/vocabularies.txt` | Vocabularies to publish: Turtle file name and ConceptScheme URI |
+| `docs/` | Quarto website project: `_quarto.yml`, theme (`custom.scss`, `styles.css`), assets |
+| `tools/` | Python tools: `build_site.py` (build driver), `vocab2mdCacheV2.py` (Markdown generation), `vocab.py` and `navocab/` (optional SQLite-based SKOS CLI, not used by the build) |
+| `Dockerfile`, `Makefile` | Build environment and commands, used both locally and in CI |
+| `.github/workflows/deploy.yml` | Build and deployment pipeline |
 
+## How the site is built
 
-## Processing pipeline
+**Turtle → rdflib graph → Markdown → HTML (Quarto)**
 
-The repository doubles as a GitHub Action that converts SKOS Turtle files to HTML documentation:
+For every entry in `vocabulary/vocabularies.txt`, `tools/build_site.py` parses the Turtle file into a separate in-memory graph, writes `docs/<name>.md`, and finally renders the Quarto project in `docs/` to `docs/_site/`. The post-render step in `docs/_quarto.yml` copies the main vocabulary page to `index.html`. The build fails if any step fails.
 
-**Turtle (.ttl) → SQLite (navocab/rdflib-sqlalchemy) → Markdown (vocab2mdCacheV2.py) → HTML (Quarto)**
+The Markdown generator handles common SKOS patterns: hierarchies via `skos:topConceptOf`/`skos:hasTopConcept` and `skos:broader`, and concepts without `skos:inScheme`.
 
-Each vocabulary is processed independently with a fresh SQLite database to prevent data from different vocabularies interfering with each other. This is important for files like the SeaDataNet vocabularies that share the same ConceptScheme URI but have different top concepts.
+Generated files (`docs/*.md`, `docs/_site/`, `docs/.quarto/`) are not versioned.
 
-### SKOS patterns handled
+## Local development
 
-The vocabularies in this repository use several different SKOS patterns. The processing tools handle all of these:
+Requirements: Docker and GNU Make. Python and Quarto run inside the container (`Dockerfile` pins the Quarto version).
 
-- **Standard hierarchy**: Concepts use `skos:topConceptOf`, `skos:inScheme`, and `skos:broader` to establish hierarchy within a single ConceptScheme.
-- **Inverse top concept declaration**: Some vocabularies (GSQ, SeaDataNet) declare top concepts using `skos:hasTopConcept` on the ConceptScheme rather than `skos:topConceptOf` on the concepts.
-- **No `skos:inScheme`**: Some vocabularies (GSQ) don't use `skos:inScheme` on individual concepts. The code falls back to following `skos:broader` relationships regardless of scheme membership.
-- **Cross-scheme children**: SeaDataNet concepts may have `skos:inScheme` pointing to a different ConceptScheme than their parent. The broader-only fallback handles this.
+| Command | Purpose |
+|---------|---------|
+| `make build` | Full build to `docs/_site/` (same as CI) |
+| `make preview` | Live preview at http://localhost:4200 with automatic reload |
+| `make markdown` | Regenerate `docs/*.md` from the Turtle files only |
+| `make serve` | Serve `docs/_site/` with nginx at http://localhost:8080, like production |
+| `make clean` | Remove generated files |
 
-## GitHub Actions workflows
+What to run for which change:
 
-| Workflow | Trigger | Description |
-|----------|---------|-------------|
-| **Process vocabularies** (`process_vocab.yml`) | Manual | Generates HTML for all vocabularies |
-| **build** (`integration.yml`) | Push to main/develop | Docker build verification and smoke test |
-| **Test vocabularies** (`testdocs_process_vocab.yml`) | Manual | Tests pipeline with a small vocabulary subset |
+- **Design** (`docs/custom.scss`, `docs/styles.css`, `docs/_quarto.yml`, assets): keep `make preview` running; the browser reloads on save.
+- **Vocabulary content** (`vocabulary/*.ttl`) or **Markdown generator** (`tools/*.py`): run `make markdown`; a running preview picks up the new Markdown.
+- **Final check before pushing:** `make build && make serve`.
 
-## Adding a new vocabulary
+## Adding a vocabulary
 
-1. Add the `.ttl` file to `vocabulary/` (or `vocabulary/`)
-2. Add its filename (without `.ttl` extension) and ConceptScheme URI to the pipe-delimited `inputttl` and `inputvocaburi` lists in `process_vocab.yml`. Order must match between the two lists.
-3. Add a section to `docs/readme.md` with links to the HTML page and RDF source file
-4. Trigger the "Process vocabularies" workflow from the Actions tab
+1. Add the `.ttl` file to `vocabulary/`.
+2. Add a line `<file name without .ttl> <ConceptScheme URI>` to `vocabulary/vocabularies.txt`.
+3. If it should become the start page, adjust the `post-render` copy in `docs/_quarto.yml`.
 
-## Implementation details
+## Deployment
 
-- **Docker image**: `python:3.12-slim-bookworm` with Quarto, rdflib, rdflib-sqlalchemy
-- **Entry point**: `.github/actions/github_action_main.py`
-- **Tools**: `tools/vocab.py` (CLI for DB loading), `tools/vocab2mdCacheV2.py` (markdown generation), `tools/navocab/` (SKOS/rdflib wrapper)
-- **Dependencies**: `setuptools<81` is pinned because `rdflib-sqlalchemy` 0.5.4 requires `pkg_resources`
-- **GitHub Pages**: Serves from the `/_site` directory on the `main` branch
+The workflow `.github/workflows/deploy.yml` runs on every push and pull request to `main`:
 
+1. **build**: `make build`, then uploads `docs/_site/` as an artifact. Pull requests stop here.
+2. **deploy** (push to `main` only, environment `production`): syncs the artifact with `rsync --delete` over SSH to the web server and checks that https://vocab.terralid.org responds.
+
+Configuration in the GitHub environment `production`:
+
+| Name | Type | Value |
+|------|------|-------|
+| `DEPLOY_SSH_KEY` | Secret | Private key of the deploy user |
+| `DEPLOY_KNOWN_HOSTS` | Secret | Output of `ssh-keyscan <host>` (verified) |
+| `DEPLOY_HOST` | Variable | `d-ws188.server.est1816.de` |
+| `DEPLOY_USER` | Variable | Deploy user on the server |
+| `DEPLOY_PATH` | Variable | Web root served by nginx |
+| `DEPLOY_PORT` | Variable | SSH port (optional, default `22`) |
+
+### Server requirements
+
+The server only serves static files; no application runtime is needed.
+
+- nginx serving `DEPLOY_PATH` for `vocab.terralid.org` over HTTPS, with DNS pointing to the server.
+- A deploy user whose key may only write to `DEPLOY_PATH`, ideally restricted to rsync (e.g. `rrsync`), and `rsync` installed.
+- SSH reachable from GitHub-hosted runners.
 
 ## Acknowledgements
 
-This project is a fork of and builds upon the workflows and code originally created by **https://www.geosamples.org/** in the **https://github.com/GeoSamples/vocabularies** project. 
+This repository is a fork of [GeoSamples/vocabularies](https://github.com/GeoSamples/vocabularies) by **https://www.geosamples.org/**, licensed under the Apache License 2.0. We are grateful to the original authors for their work.
 
-The original work is licensed under the Apache License 2.0. We are incredibly grateful to the original authors for their contributions to the community.
-
-## Generate HTML Documentation
-
-### 1. Build the Docker image
-
-```bash
-docker build -t terralid-vocab .
-
-docker run --rm \
-  -v $(pwd)/docs:/app/docs \
-  -e INPUT_ACTION=docs \
-  -e INPUT_PATH=/app \
-  -e INPUT_INPUTTTL="2026_06_12_TerraLID_vocab" \
-  -e INPUT_INPUTVOCABURI="http://vocab.terralid.org#conceptScheme_a0559f69" \
-  terralid-vocab
-
-
+This work has received funding from the German Research Foundation (DFG) through the grants KL 1259/17-1 and WI 5923/2-1 (project number: 524790825).

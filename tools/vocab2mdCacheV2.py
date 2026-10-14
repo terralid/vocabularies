@@ -29,6 +29,7 @@ import sys
 import textwrap
 import click
 import rdflib
+import rdflib.plugins.sparql
 import datetime
 import logging
 import logging.config
@@ -147,26 +148,33 @@ def getVocabRoot(g, v):
     return res
 
 
+# Parsing SPARQL is expensive; prepare once instead of on every call.
+NARROWER_IN_SCHEME_QUERY = rdflib.plugins.sparql.prepareQuery(PFX + """SELECT ?s
+    WHERE {
+        ?s skos:inScheme ?vocabulary .
+        ?s skos:broader ?parent .
+    }""")
+NARROWER_QUERY = rdflib.plugins.sparql.prepareQuery(PFX + """SELECT ?s
+    WHERE {
+        ?s skos:broader ?parent .
+    }""")
+OBJECTS_QUERY = rdflib.plugins.sparql.prepareQuery(PFX + """SELECT ?o
+    WHERE {
+        ?subject ?predicate ?o .
+    }""")
+
+
 def getNarrower(g, v, r):
     """Get narrower concepts of r in vocabulary v.
     First tries skos:inScheme + skos:broader. If no results, falls back
     to skos:broader only (for vocabs that don't use skos:inScheme).
     """
-    q = rdflib.plugins.sparql.prepareQuery(PFX + """SELECT ?s
-    WHERE {
-        ?s skos:inScheme ?vocabulary .
-        ?s skos:broader ?parent .
-    }""")
-    qres = g.query(q, initBindings={'vocabulary': v, 'parent': r})
+    qres = g.query(NARROWER_IN_SCHEME_QUERY, initBindings={'vocabulary': v, 'parent': r})
     res = []
     for row in qres:
         res.append(row[0])
     if len(res) == 0:
-        q2 = rdflib.plugins.sparql.prepareQuery(PFX + """SELECT ?s
-        WHERE {
-            ?s skos:broader ?parent .
-        }""")
-        qres = g.query(q2, initBindings={'parent': r})
+        qres = g.query(NARROWER_QUERY, initBindings={'parent': r})
         for row in qres:
             res.append(row[0])
     return res
@@ -174,10 +182,7 @@ def getNarrower(g, v, r):
 
 def getObjects(g, s, p):
     L = getLogger()
-    q = rdflib.plugins.sparql.prepareQuery(PFX + """SELECT ?o
-    WHERE {
-        ?subject ?predicate ?o .
-    }""")
+    q = OBJECTS_QUERY
     L.debug(f"getObject prefixes: {PFX}")
     L.debug(f"getObject subject: {s}")
     L.debug(f"getObject predicate: {p}")

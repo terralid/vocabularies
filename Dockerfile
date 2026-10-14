@@ -1,32 +1,15 @@
 FROM python:3.12-slim-bookworm
 
-WORKDIR /app
+ARG QUARTO_VERSION=1.8.26
+ARG TARGETARCH=amd64
 
-COPY ./.github/actions/github_action_main.py .
-COPY ./tools ./tools
-COPY ./vocabulary ./vocabulary
-COPY ./docs ./docs
-COPY ./cache ./cache
+ADD https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-${TARGETARCH}.tar.gz /tmp/quarto.tar.gz
+RUN tar -xzf /tmp/quarto.tar.gz -C /opt \
+    && ln -s /opt/quarto-${QUARTO_VERSION}/bin/quarto /usr/local/bin/quarto \
+    && rm /tmp/quarto.tar.gz
 
-RUN chmod a+x /app/github_action_main.py
+COPY tools/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Force IPv4
-RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
-
-# Switch Debian repos to HTTPS
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    gdebi-core \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip install -r /app/tools/requirements.txt
-
-RUN curl -LO https://quarto.org/download/latest/quarto-linux-amd64.deb
-RUN gdebi --non-interactive quarto-linux-amd64.deb
-
-ENV PYTHONPATH=/app
-
-ENTRYPOINT ["/app/github_action_main.py"]
+# The repository is mounted at runtime (see Makefile).
+WORKDIR /repo
