@@ -1,28 +1,15 @@
-FROM python:3.12-slim
-WORKDIR /app
-COPY ./.github/actions/github_action_main.py .
-COPY ./tools ./tools
-COPY ./vocabulary ./vocabulary
-COPY ./docs  ./docs
-COPY ./cache ./cache
+FROM python:3.12-slim-bookworm
 
-# RUN chmod a+x /app/github_action_main.py
-RUN chmod a+x /app/github_action_main.py
+ARG QUARTO_VERSION=1.8.26
+ARG TARGETARCH=amd64
 
-# Quarto install instructions from https://www.r-bloggers.com/2022/07/how-to-set-up-quarto-with-docker-part-1-static-content/
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    gdebi-core \
-    && rm -rf /var/lib/apt/lists/*
+ADD https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-${TARGETARCH}.tar.gz /tmp/quarto.tar.gz
+RUN tar -xzf /tmp/quarto.tar.gz -C /opt \
+    && ln -s /opt/quarto-${QUARTO_VERSION}/bin/quarto /usr/local/bin/quarto \
+    && rm /tmp/quarto.tar.gz
 
-RUN pip install -r /app/tools/requirements.txt
+COPY tools/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-RUN curl -LO https://quarto.org/download/latest/quarto-linux-amd64.deb
-RUN gdebi --non-interactive quarto-linux-amd64.deb
-
-ENV PYTHONPATH /app
-ENTRYPOINT ["/app/github_action_main.py"]
-
-# This is for debugging the Docker image build process, ensures the container stays up
-# ENTRYPOINT ["tail", "-f", "/dev/null"]
-
+# The repository is mounted at runtime (see Makefile).
+WORKDIR /repo

@@ -1,0 +1,60 @@
+project:
+  type: website
+  output-dir: _site
+  post-render: 
+    - cp _site/2026_06_12_TerraLID_vocab.html _site/index.html
+
+website:
+  site-url: https://vocab.terralid.org/
+  repo-url: https://github.com/terralid/vocabularies
+  title: "TerraLID Vocabulary"
+
+  favicon: assets/favicon/favicon.ico
+
+  navbar:
+    title: "&nbsp;&nbsp;TerraLID Vocabulary"
+    logo: assets/TerraLID_logo_word_white.png
+    logo-alt: "TerraLID logo"
+    href: /
+    left:
+      - text: "                              "
+        # menu:
+        #   - href: https://vocab.terralid.org/
+        #     text: "V2"
+        #   - href: https://vocab.terralid.org/
+        #     text: "V1"
+      - text: "                              "  
+    
+    right:
+      - icon: github
+        href: https://github.com/terralid/vocabularies
+        aria-label: "GitHub"
+
+
+  page-footer:
+    left: |
+      This work is licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)  
+      [Legal information](https://www.terralid.org/about.html)
+
+    right: |
+      [![](icons/instagram.svg){width=20px}](https://www.instagram.com/terra_lid/) [![](icons/mail.svg){width=20px}](mailto:terralid@bergbaumuseum.de)  [![](icons/globe.svg){width=20px}](https://www.terralid.org) 
+
+format:
+  html:
+    theme:
+      - sandstone
+      - custom.scss
+
+    css: styles.css
+
+    toc: true
+    toc-location: left
+    toc-depth: 5
+    smooth-scroll: true
+    number-sections: true
+    anchor-sections: false
+    number-depth: 8
+
+    link-external-newwindow: true
+
+    # date: today

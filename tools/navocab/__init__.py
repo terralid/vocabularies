@@ -63,7 +63,7 @@ PREFIX owl: <{NS['owl']}>
 PREFIX rdf: <{NS['rdf']}>
 PREFIX rdfs: <{NS['rdfs']}>
 """
-    DEFAULT_FORMAT = "text/turtle"
+    DEFAULT_FORMAT = None
     DEFAULT_STORE = "sqlite://"
 
     def __init__(

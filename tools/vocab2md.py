@@ -224,12 +224,20 @@ def _labelToLink(label):
     if isinstance(label, list):
         label = label[0]
     label = label.split("/")[-1]
+    label = label.split("#")[-1]
     label = label.lower().strip()
     label = label.replace(",", "")
     label = label.replace(" ","-")
     return label
     
+def get_sorted_narrower(g, v, r):
+    terms = getNarrower(g, v, r)
 
+    def label(term):
+        labels = getObjects(g, term, skosT("prefLabel"))
+        return str(labels[0]).lower() if labels else ""
+
+    return sorted(terms, key=label)
 
 def termTree(g, v, r, depth=0):
     label = getObjects(g, r, skosT("prefLabel"))
@@ -239,7 +247,7 @@ def termTree(g, v, r, depth=0):
         label = [r, ]
     llabel = _labelToLink(r)
     res = [f"{'    '*depth}- [{label[0]}](#{llabel})"]
-    for term in getNarrower(g, v, r):
+    for term in get_sorted_narrower(g, v, r):
         res += termTree(g, v, term, depth=depth+1)
     return res
 
@@ -253,7 +261,7 @@ def termJsonTree(g, v, r, depth=0):
     }
     #res = [f"{'    '*depth}- [{label[0]}](#{llabel})"]
     children = []
-    for term in getNarrower(g, v, r):
+    for term in get_sorted_narrower(g, v, r):
         children.append(termJsonTree(g, v, term, depth=depth+1))
     obj["children"] = children
     return obj
@@ -270,16 +278,26 @@ def describeTerm(g, t, depth=0, level=1):
         for label in labels[1:]:
             res.append(f"* `{label}`")
         res.append("")
-    _target = t.split("/")[-1]
-    res.append("[]{" + f"#{_labelToLink(_target)}" + "}")
+    # _target = t.split("/")[-1]
+    # _target = _target.split("#")[-1]
+    # res.append("[]{" + f"#{_labelToLink(_target)}" + "}")
     res.append("")
-    res.append(f"Concept: [`{t.split('/')[-1]}`]({t})")
+    res.append(f"Concept: [`{t.split('/')[-1].split("#")[-1]}`]({t})")
     broader = getObjects(g, t, skosT('broader'))
+    broader = sorted(
+        broader,
+        key=lambda b: (
+            str(getObjects(g, b, skosT('prefLabel'))[0]).lower()
+            if getObjects(g, b, skosT('prefLabel'))
+            else str(b).lower()
+        )
+    )
     if len(broader) > 0:
         res.append("")
         res.append("Child of:")
         for b in broader:
             bt = b.split('/')[-1]
+            bt = bt.split("#")[-1]
             res.append(f" [`{bt}`](#{bt})")
     res.append("")
     # The textual description will be present in rdfs:comment or
@@ -306,7 +324,7 @@ def describeTerm(g, t, depth=0, level=1):
 
 def describeNarrowerTerms(g, v, r, depth=0, level=[]):
     res = []
-    terms = getNarrower(g, v, r)
+    terms = get_sorted_narrower(g, v, r)
     for term in terms:
         res += describeTerm(g, term, depth=depth)
         res.append("")
@@ -321,7 +339,7 @@ def describeVocabulary(G, V):
     res.append("comment: | \n  WARNING: This file is generated. Any edits will be lost!")
     res.append(f"title: \"{title.strip()}\"")
     res.append(f"date: \"{datetime.datetime.now().replace(tzinfo=datetime.timezone.utc).isoformat()}\"")
-    res.append("subtitle: |")
+    res.append(" |")
     for comment in getObjects(G, V, skosT("definition")) + getObjects(G, V, rdfsT("comment")):
         res.append(f"  {comment.strip()}")
     res.append("execute:")
