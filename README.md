@@ -62,7 +62,7 @@ Configuration in the GitHub environment `production`:
 |------|------|-------|
 | `DEPLOY_SSH_KEY` | Secret | Private key of the deploy user |
 | `DEPLOY_KNOWN_HOSTS` | Secret | Output of `ssh-keyscan <host>` (verified) |
-| `DEPLOY_HOST` | Variable | `d-ws188.server.est1816.de` |
+| `DEPLOY_HOST` | Variable | Host with webserver |
 | `DEPLOY_USER` | Variable | Deploy user on the server |
 | `DEPLOY_PATH` | Variable | Web root served by nginx |
 | `DEPLOY_PORT` | Variable | SSH port (optional, default `22`) |
