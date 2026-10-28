@@ -206,14 +206,16 @@ def _labelToLink(label):
     label = label.replace(" ", "-")
     return label
 
-def get_sorted_narrower(g, v, r):
-    terms = getNarrower(g, v, r)
-
+def sort_terms(g, terms):
     def label(term):
         labels = getObjects(g, term, skosT("prefLabel"))
         return str(labels[0]).lower() if labels else ""
 
     return sorted(terms, key=label)
+
+
+def get_sorted_narrower(g, v, r):
+    return sort_terms(g, getNarrower(g, v, r))
 
 
 def termTree(g, v, r, depth=0):
@@ -275,6 +277,10 @@ def describeTerm(g, t, depth=0, level=1):
         res.append(f"{hl} {labels[0].strip()} {hid}")
         for label in labels[1:]:
             res.append(f"* `{label}`")
+
+    is_collection = (t, rdfT("type"), skosT("Collection")) in g
+    if is_collection:
+        res.append("- **Type:** SKOS Collection")
 
     # Textual descriptions (rdfs:comment or skos:definition)
     comments = []
@@ -347,8 +353,18 @@ def describeTerm(g, t, depth=0, level=1):
             if len(ref) > 0:
                 res.append(f"  - [{ref}]({ref})")
 
-    # Global base concept identifier
-    res.append(f'- **Concept URI:** <a href="{t}">{t}</a>')
+    if is_collection:
+        members = sort_terms(g, getObjects(g, t, skosT("member")))
+        if members:
+            res.append("- **Members:**")
+            for member in members:
+                target = member.split("/")[-1].split("#")[-1]
+                member_labels = getObjects(g, member, skosT("prefLabel"))
+                label = str(member_labels[0]).strip() if member_labels else target
+                res.append(f"  - [`{label}`](#{target})")
+
+    uri_label = "Collection" if is_collection else "Concept"
+    res.append(f'- **{uri_label} URI:** <a href="{t}">{t}</a>')
 
     return res
 
@@ -478,6 +494,14 @@ def describeVocabulary(G, V):
         res.append("")
         res += describeNarrowerTerms(G, V, aroot, depth=depth + 1, level=level)
         res.append("")
+
+    collections = sort_terms(G, G.subjects(rdfT("type"), skosT("Collection")))
+    if collections:
+        res.append("# Collections")
+        res.append("")
+        for collection in collections:
+            res += describeTerm(G, collection, depth=depth)
+            res.append("")
     return res
 
 def conceptschemelist(G):

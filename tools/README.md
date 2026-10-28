@@ -15,6 +15,17 @@ python vocab.py
 
 Generates markdown from a SKOS vocabulary file.
 
+The site build uses `vocab2mdCacheV2.py`. It renders the concept hierarchy and a
+separate Collections section with stable URI-based anchors and linked members.
+Collections do not need `skos:inScheme`; all collections in the input graph are
+published.
+
+Run the Markdown generator regression tests from the repository root in an
+environment with `requirements.txt` installed:
+
+```sh
+PYTHONPATH=tools python -m unittest tools.tests.test_vocab2md
+```
 
 ## navocab
 

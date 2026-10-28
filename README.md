@@ -23,6 +23,14 @@ For every entry in `vocabulary/vocabularies.txt`, `tools/build_site.py` parses t
 
 The Markdown generator handles common SKOS patterns: hierarchies via `skos:topConceptOf`/`skos:hasTopConcept` and `skos:broader`, and concepts without `skos:inScheme`.
 
+SKOS Collections are published in a separate **Collections** section, sorted by
+label, with metadata and links to their `skos:member` concepts. All
+`skos:Collection` resources in the file are included, even without
+`skos:inScheme`. Collections do not alter the concept hierarchy. Their URI local
+names serve as stable heading anchors, for example
+https://vocab.terralid.org/#skosCollection_05151bf3 for **person identifier** and
+https://vocab.terralid.org/#skosCollection_b1dd3bc5 for **period identifier**.
+
 Generated files (`docs/*.md`, `docs/_site/`, `docs/.quarto/`) are not versioned.
 
 ## Local development
