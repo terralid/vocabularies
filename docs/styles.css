@@ -62,3 +62,13 @@ section[id] {
 section:target::before {
   display: none !important;
 }
+
+#TOC .vocabulary-navigation-tabs {
+  flex-wrap: nowrap;
+  margin-bottom: 0.75rem;
+}
+
+#TOC .vocabulary-navigation-tabs .nav-link {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+}

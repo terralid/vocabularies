@@ -46,14 +46,14 @@ format:
       - custom.scss
 
     css: styles.css
+    include-after-body: navigation-tabs.inc
 
     toc: true
     toc-location: left
     toc-depth: 5
     smooth-scroll: true
-    number-sections: true
+    number-sections: false
     anchor-sections: false
-    number-depth: 8
 
     link-external-newwindow: true
 

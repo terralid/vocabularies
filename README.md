@@ -23,6 +23,12 @@ For every entry in `vocabulary/vocabularies.txt`, `tools/build_site.py` parses t
 
 The Markdown generator handles common SKOS patterns: hierarchies via `skos:topConceptOf`/`skos:hasTopConcept` and `skos:broader`, and concepts without `skos:inScheme`.
 
+The left-hand navigation has **Hierarchy** and **Groups** tabs, without
+section numbering. **Hierarchy** retains the concept hierarchy;
+**Groups** links only to the SKOS Collections. The page content remains
+continuous, so concept and collection links work independently of the selected
+navigation tab.
+
 SKOS Collections are published in a separate **Collections** section, sorted by
 label, with metadata and links to their `skos:member` concepts. All
 `skos:Collection` resources in the file are included, even without
